@@ -15,7 +15,7 @@ from typing import Union
 LOG = logging.getLogger()
 
 
-IPInterfaceType = TypeVar("IPInterfaceType", IPv4Interface, IPv6Interface)
+IPInterfaceType = TypeVar("IPInterfaceType", IPv4Interface, IPv6Interface)  # pylint: disable=invalid-name
 IPPair = Tuple[IPInterfaceType, IPInterfaceType]
 IPPairList = List[IPPair]
 
@@ -131,7 +131,6 @@ def is_in_ranges(ip: Union[IPv4Interface, IPv6Interface], ranges: IPPairList) ->
     Returns:
         bool: True if the IP is in any range, False otherwise.
     """
-    """Check if an IP is in a list of IP ranges."""
     ip_type = type(ip.ip)
 
     return any(

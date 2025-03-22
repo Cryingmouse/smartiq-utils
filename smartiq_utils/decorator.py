@@ -2,13 +2,15 @@ import logging
 import time
 from datetime import datetime
 from functools import wraps
+from typing import Any
+from typing import Callable
 
 import tenacity
 
 LOG = logging.getLogger()
 
 
-def measure_exec_time(func):
+def measure_exec_time(func: Callable[..., Any]) -> Callable[..., Any]:
     """Calculate the running time of the decorated function.
 
     Args:
@@ -19,7 +21,7 @@ def measure_exec_time(func):
     """
 
     @wraps(func)
-    def func_wrapper(*args, **kwargs):
+    def func_wrapper(*args: Any, **kwargs: Any) -> Any:
         # Record the start time and a human-readable timestamp
         wall_time_start = time.time()
         perf_time_start = time.perf_counter()
@@ -45,7 +47,7 @@ def measure_exec_time(func):
     return func_wrapper
 
 
-def wait_until(delay=60, retry=tenacity.retry_if_result, retry_param=lambda v: v is False):
+def wait_until(delay: int = 60, retry=tenacity.retry_if_result, retry_param: Callable = lambda v: v is False):
     """Retry until a function is executed successfully or a timeout is reached.
 
     Args:
