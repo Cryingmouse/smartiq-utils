@@ -1,0 +1,167 @@
+stages:
+  - test
+  - static_analysis
+  - build
+  - publish
+  - docs
+
+# 公共配置锚点
+.default_config: &default_config
+  before_script:
+    - pip3 install --upgrade pip
+    - curl -sSL https://install.python-poetry.org | python3 -
+    - export PATH="$HOME/.local/bin:$PATH"
+    - whoami
+    - poetry config virtualenvs.in-project true
+  cache:
+    key: "${CI_COMMIT_REF_SLUG}"
+    paths:
+      - .venv/
+      - .cache/pypoetry
+      - coverage.xml.cached
+
+# 测试任务模板
+.test_template:
+  <<: *default_config
+  stage: test
+  script:
+    - poetry install --no-root --with test
+    # 生成XML格式的覆盖率报告
+    - poetry run pytest --cov=smartiq_utils --cov-report=xml --cov-report=html --ignore=component_tests tests
+    # 覆盖率比较逻辑
+    - |
+      current_coverage=$(xmllint --xpath '//coverage/@line-rate' coverage.xml | sed 's/.*"\(.*\)"/\1/' | awk '{print $1*100}')
+      echo "当前覆盖率: ${current_coverage}%"
+
+      if [ -f "coverage.xml.cached" ]; then
+          previous_coverage=$(xmllint --xpath '//coverage/@line-rate' coverage.xml.cached | sed 's/.*"\(.*\)"/\1/' | awk '{print $1*100}')
+          echo "上一次覆盖率: ${previous_coverage}%"
+
+          if (( $(echo "$current_coverage < $previous_coverage" | bc -l) )); then
+              echo "错误：覆盖率下降！当前：${current_coverage}% < 上一次：${previous_coverage}%"
+              exit 1
+          else
+              echo "覆盖率检查通过，当前：${current_coverage}% >= 上一次：${previous_coverage}%"
+          fi
+      else
+          echo "未找到历史覆盖率数据，跳过检查"
+      fi
+
+      # 保存当前报告供下次使用
+      cp coverage.xml coverage.xml.cached
+  artifacts:
+    paths:
+      - coverage.xml.cached  # 上传本次覆盖率报告
+      - htmlcov/ # 新增HTML报告目录
+    expire_in: 1 day
+
+.flake8_analysis_template:
+  <<: *default_config
+  stage: static_analysis
+  script:
+    - poetry install --no-root --with lint
+    # 严格模式：发现任意错误立即失败
+    - poetry run flake8 ./smartiq_uitls --config .flake8 --exit-zero > flake8_report.txt || true
+    # 质量阀门判断
+    - |
+      ERROR_COUNT=$(wc -l < flake8_report.txt)
+      MAX_ALLOWED=0  # 初始阶段可以设置为10，逐步收紧
+      
+      echo "发现 ${ERROR_COUNT} 个风格问题"
+      cat flake8_report.txt
+      
+      if [ $ERROR_COUNT -gt $MAX_ALLOWED ]; then
+        echo "代码风格检查未通过！当前错误数：${ERROR_COUNT}（最大允许：${MAX_ALLOWED}）"
+        exit 1
+      else
+        echo "代码风格检查通过"
+      fi
+  artifacts:
+    paths:
+      - flake8_report.txt
+    when: always  # 即使失败也保留报告
+
+.pylint_analysis_template:
+  <<: *default_config
+  stage: static_analysis
+  script:
+    - poetry install --no-root --with lint
+    # 非严格模式
+    - poetry run pylint ./smartiq_uitls --output-format=text > pylint_report.txt || echo "Pylint发现代码问题（非阻塞警告）,请参考report"
+  artifacts:
+    paths:
+      - pylint_report.txt
+    expire_in: 1 day
+
+.mypy_analysis_template:
+  <<: *default_config
+  stage: static_analysis
+  script:
+    - poetry install --no-root --with lint
+    # 非严格模式
+    - poetry run mypy ./smartiq_uitls > mypy_report.txt || echo "Mypy发现代码问题（非阻塞警告）,请参考report"
+  artifacts:
+    paths:
+      - mypy_report.txt
+    expire_in: 1 day
+
+# 构建任务模板
+.build_template:
+  <<: *default_config
+  stage: build
+  script:
+    - poetry install --no-root --with docs
+    - poetry build
+  artifacts:
+    paths:
+      - dist/
+    expire_in: 1 week
+
+# 部署任务模板
+.publish_template:
+  <<: *default_config
+  stage: publish
+  script:
+    - poetry config repositories.private-pypi $PYPI_REPOSITORY_URL
+    - poetry config keyring.enabled false
+    - poetry config http-basic.private-pypi $PYPI_USERNAME $PYPI_PASSWORD
+    - poetry publish --repository private-pypi
+  rules:
+    - if: $CI_COMMIT_BRANCH == "master"
+  variables:
+    PYPI_REPOSITORY_URL: "http://10.128.134.160:8077"
+    PYPI_USERNAME: "root"
+    PYPI_PASSWORD: "smartiq_uitls"
+
+# 具体任务定义
+unit-test:
+  extends: .test_template
+
+flake8-analysis:
+  extends: .flake8_analysis_template
+
+pylint-analysis:
+  extends: .pylint_analysis_template
+
+mypy-analysis:
+  extends: .mypy_analysis_template
+
+build-package:
+  extends: .build_template
+  needs: [ "unit-test", "flake8-analysis", "pylint-analysis", "mypy-analysis" ]
+
+publish-package:
+  extends: .publish_template
+  needs:
+    - build-package
+
+build-docs:
+  <<: *default_config
+  stage: docs
+  script:
+    - poetry install --no-root --with docs
+    - poetry run mkdocs build
+  artifacts:
+    paths:
+      - site/
+    expire_in: 1 week

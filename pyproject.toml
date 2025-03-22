@@ -1,0 +1,107 @@
+[project]
+name = "smartiq_utils"
+description = "The utility library for management application."
+license = { text = "Apache-2.0" }
+authors = [
+    { name = "Xu, Jay", email = "jay.xu@lenovonetapp.com" }
+]
+maintainers = [
+    { name = "He, Renke", email = "renke.he@lenovonetapp.com" },
+    { name = "Ren, Ying", email = "ying.ren@lenovonetapp.com" },
+    { name = "Zhang, Long", email = "long.zhang@lenovonetapp.com" },
+    { name = "Zhu, Daijun", email = "daijun.zhu@lenovonetapp.com" }
+]
+readme = "README.md"
+keywords = ["Lenovonetapp", "Magnascale", "Utility"]
+requires-python = ">=3.8.10,<3.9 || >=3.9.13,<3.10 || >=3.10.11,<3.11 || >=3.11.6,<3.12"
+classifiers = [
+    "Natural Language :: English",
+    "Intended Audience :: Developers",
+    "Operating System :: OS Independent",
+    "Development Status :: 5 - Production/Stable",
+    "Topic :: Utilities",
+    "License :: OSI Approved :: Apache Software License",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+]
+dynamic = ["version"]
+dependencies = [
+    "tenacity (>=9.0.0,<10.0.0)"
+]
+
+[tool.poetry]
+version = "0.0.0"
+
+[tool.poetry.requires-plugins]
+poetry-dynamic-versioning = { version = ">=1.0.0,<2.0.0", extras = ["plugin"] }
+
+[tool.poetry-dynamic-versioning]
+enable = true
+style = "pep440"  # Use PEP 440 style versioning
+dirty = true  # Add ".dirty" suffix if there are uncommitted changes
+format = "{base}.dev{distance}"  # Format version as {base}.dev{distance}
+
+[[tool.poetry.source]]
+name = "tsinghua"
+url = "https://mirrors.tuna.tsinghua.edu.cn/pypi/web/simple/"
+priority = "primary"
+
+[tool.poetry.group.test]
+optional = true
+
+[tool.poetry.group.test.dependencies]
+ddt = "1.7.2"
+pytest = "8.3.4"
+pytest-cov = {version="^6.0.0", python = ">=3.9"}
+
+[tool.poetry.group.lint]
+optional = true
+
+[tool.poetry.group.lint.dependencies]
+flake8-pyproject = "^1.2.3"
+flake8 = "7.1.1"
+pylint = { version = "^3.3.6", python = ">=3.9" }
+deptry = { version = "^0.23.0", python = ">=3.9" }
+mypy = { version = "^1.15.0", python = ">=3.9" }
+lxml = "^5.3.1"
+black = {version = "^25.1.0", python = ">=3.9"}
+
+[tool.pylint.format]
+max-line-length = 120
+
+[tool.pylint.MESSAGES_CONTROL]
+disable = [
+    "C0114",
+    "C0115",
+    "C0116",
+    "R0903",
+    "R0913",
+    "R0914",
+    "R0917",
+    "R1710",
+    "W0511",
+    "W1203",
+]
+
+[tool.mypy]
+warn_return_any = true
+warn_unused_configs = true
+
+[tool.poetry.group.docs]
+optional = true
+
+[tool.poetry.group.docs.dependencies]
+mkdocs-material = "^9.6.1"
+mkdocs = "^1.6.1"
+mkdocs-markdownextradata-plugin = "^0.2.6"
+mkdocstrings = { version = "^0.28.0", python = ">=3.9" }
+mkdocstrings-python = { version = "^1.14.6", python = ">=3.9" }
+
+[tool.deptry]
+ignore = ["DEP003"]
+
+[build-system]
+requires = ["poetry-core>=1.0.0", "poetry-dynamic-versioning>=1.0.0,<2.0.0"]
+build-backend = "poetry_dynamic_versioning.backend"
