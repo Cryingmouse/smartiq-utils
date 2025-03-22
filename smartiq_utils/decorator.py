@@ -1,9 +1,11 @@
 import logging
 import time
 from datetime import datetime
+from datetime import timedelta
 from functools import wraps
 from typing import Any
 from typing import Callable
+from typing import Union
 
 import tenacity
 
@@ -47,19 +49,22 @@ def measure_exec_time(func: Callable[..., Any]) -> Callable[..., Any]:
     return func_wrapper
 
 
-def wait_until(delay: int = 60, retry=tenacity.retry_if_result, retry_param: Callable = lambda v: v is False):
+def wait_until(
+    delay: Union[int | float | timedelta] = 60,
+    retry: Callable[..., Any] = tenacity.retry_if_result,
+    retry_param: Callable[..., Any] = lambda v: v is False,
+):
     """Retry until a function is executed successfully or a timeout is reached.
 
     Args:
-        delay (int): the timeout to exist retry.
+        delay (int, optional): the timeout to exist retry.
         retry (callable): the callable object to check retry condition.
-        retry_param (callable): the callable object to check the return value
-        of the executed functions.
+        retry_param (callable): the callable object to check the return value of the executed functions.
     """
 
-    def _decorator(f):
+    def _decorator(f) -> Callable[..., Any]:
         @wraps(f)
-        def func_wrapper(*args, **kwargs):
+        def func_wrapper(*args: Any, **kwargs: Any):
             r = tenacity.Retrying(
                 before_sleep=tenacity.before_sleep_log(LOG, logging.DEBUG),
                 after=tenacity.after_log(LOG, logging.DEBUG),

@@ -3,6 +3,7 @@
 dist/
 site/
 htmlcov/
+reports/
 .coverage
 coverage.xml
 flake8_report.txt

@@ -31,10 +31,6 @@ dependencies = [
     "tenacity (>=9.0.0,<10.0.0)"
 ]
 
-[project.scripts]
-smartiq_utils_check = "check:main"
-
-
 [tool.poetry]
 version = "0.0.0"
 
