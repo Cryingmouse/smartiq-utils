@@ -6,6 +6,7 @@ htmlcov/
 .coverage
 coverage.xml
 flake8_report.txt
+jupyter.ipynb
 poetry.lock
 
 .idea
