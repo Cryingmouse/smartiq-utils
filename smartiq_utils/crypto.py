@@ -7,7 +7,7 @@ from cryptography.hazmat.primitives.ciphers import algorithms
 from cryptography.hazmat.primitives.ciphers import Cipher
 from cryptography.hazmat.primitives.ciphers import modes
 
-SECRET_KEY = "*pbm%^sk$wkh38uxv!cj^j-hmg)=xctmcmkw6ezm2yp2tx88h6"  # 加密使用的 SALT，DONT CHANGE
+SECRET_KEY = "*pbm%^sk$wkh38uxv!cj^j-hmg)=xctmcmkw6ezm2yp2tx88h6"  # SALT used for encryption, DONT CHANGE
 
 
 class AESCrypto:
@@ -26,7 +26,7 @@ class AESCrypto:
 
     @staticmethod
     def pkcs7_unpadding(padded_data: bytes):
-        """解密字符串去掉 pkcs7 标准"""
+        """Remove PKCS7 standard from the decrypted string"""
         unpadder = padding.PKCS7(algorithms.AES.block_size).unpadder()
         data = unpadder.update(padded_data)
 
@@ -34,7 +34,7 @@ class AESCrypto:
 
     @staticmethod
     def pkcs7_padding(data: Union[bytes, str]):
-        """使用 pkcs7 标准化要加密的字符串"""
+        """Standardize the string to be encrypted using PKCS7"""
         if not isinstance(data, bytes):
             data = data.encode()
 
@@ -68,12 +68,12 @@ class AESCrypto:
 
 
 def passwd_encode(value: str):
-    """加密字符串"""
+    """Encrypt a string"""
     v = AESCrypto.encrypt(value)
     return base64.b64encode(v).decode()
 
 
 def passwd_decode(encrypted_value: str):
-    """解密字符串"""
+    """Decrypt a string"""
     v = base64.b64decode(encrypted_value.encode())
     return AESCrypto.decrypt(v)

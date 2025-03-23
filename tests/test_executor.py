@@ -43,14 +43,14 @@ class TestExecuteLocalCommand(unittest.TestCase):
         with self.assertRaises(SystemCallError) as cm:
             execute_local_command("invalid command", raise_exception=True)
         self.assertEqual(cm.exception.exit_code, 1)
-        self.assertEqual(cm.exception.output, "error message")
+        self.assertEqual(cm.exception.stdout, "error message")
 
     @patch("subprocess.run")
     def test_timeout_raise_exception(self, mock_run):
         mock_run.side_effect = subprocess.TimeoutExpired(cmd="sleep 2", timeout=1, output="timeout occurred")
         with self.assertRaises(SystemCallTimeoutError) as cm:
             execute_local_command("sleep 2", timeout=1, raise_exception=True)
-        self.assertEqual(cm.exception.output, "timeout occurred")
+        self.assertEqual(cm.exception.stdout, "timeout occurred")
 
     def test_empty_command(self):
         with self.assertRaises(ValueError):
@@ -95,8 +95,8 @@ class TestExecuteLocalCommandWithRetry(unittest.TestCase):
     @patch("smartiq_utils.executor.execute_local_command")
     def test_retry_success_after_failures(self, mock_execute):
         mock_execute.side_effect = [
-            SystemCallError(1, "error1"),
-            SystemCallError(1, "error2"),
+            SystemCallError(1, "stdout1", "error1"),
+            SystemCallError(1, "stdout1", "error2"),
             "success",
         ]
         result = execute_local_command_with_retry("command", retries=3)
@@ -105,7 +105,7 @@ class TestExecuteLocalCommandWithRetry(unittest.TestCase):
 
     @patch("smartiq_utils.executor.execute_local_command")
     def test_retry_all_failures(self, mock_execute):
-        mock_execute.side_effect = SystemCallError(1, "error")
+        mock_execute.side_effect = SystemCallError(1, "stdout", "error")
         with self.assertRaises(tenacity.RetryError):
             execute_local_command_with_retry("command", retries=3)
         self.assertEqual(mock_execute.call_count, 3)
@@ -119,7 +119,7 @@ class TestExecuteLocalCommandWithRetry(unittest.TestCase):
 
     @patch("smartiq_utils.executor.execute_local_command")
     def test_retry_count(self, mock_execute):
-        mock_execute.side_effect = SystemCallError(1, "error")
+        mock_execute.side_effect = SystemCallError(1, "stdout", "error")
         try:
             execute_local_command_with_retry("command", retries=5)
         except tenacity.RetryError:

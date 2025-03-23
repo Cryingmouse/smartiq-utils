@@ -33,7 +33,6 @@ class MultipleException(Exception):
     def __len__(self):
         return len(self._exceptions)
 
-    # 暴露 HashMapping 的 items/keys/values 方法
     def items(self):
         return self._exceptions.items()
 

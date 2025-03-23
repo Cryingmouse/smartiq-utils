@@ -29,7 +29,11 @@ classifiers = [
 dynamic = ["version"]
 dependencies = [
     "tenacity (>=9.0.0,<10.0.0)",
-    "cryptography (>=44.0.2,<45.0.0)"
+    "cryptography (>=44.0.2,<45.0.0)",
+    "requests (>=2.32.3,<3.0.0)",
+    "paramiko (>=3.5.1,<4.0.0)",
+    "pydantic (>=2.10.6,<3.0.0)",
+    "kubernetes (>=32.0.1,<33.0.0)"
 ]
 
 [tool.poetry]
@@ -79,6 +83,7 @@ disable = [
     "C0115",
     "C0116",
     "R0903",
+    "R0904",
     "R0913",
     "R0914",
     "R0917",
