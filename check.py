@@ -91,15 +91,20 @@ def execute_command(cmd: List[str], report_file: Path) -> int:
         with report_file.open() as f:
             lines = f.readlines()
 
+            mypy_error_count = 0
+
             # This is for pylint
             pattern = r"^[^:]+:\d+:\d+:\s[A-Z]\d+:\s.*"
-            error_count = sum(1 for line in lines if re.match(pattern, line.lower()))
-            # This is for mypy
-            error_count += sum(1 for line in lines if "error" in line.lower())
+            pylint_error_count = sum(1 for line in lines if re.match(pattern, line))
+            if pylint_error_count == 0:
+                # This is for mypy
+                mypy_error_count = sum(1 for line in lines if "error" in line.lower())
+
+            error_count = pylint_error_count + mypy_error_count
             warning_count = sum(1 for line in lines if "warning" in line.lower())
 
         console.print(
-            f"Results: [red]{error_count} errors[/], " f"[yellow]{warning_count} warnings[/] " f"in {len(lines)} lines"
+            f"Results: [red]{error_count} errors[/], [yellow]{warning_count} warnings[/] in {len(lines)} lines"
         )
         console.print(f"Full report: [blue]{report_file}[/]")
 

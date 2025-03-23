@@ -1,7 +1,8 @@
 import hashlib
 import logging
-from collections.abc import MutableMapping, ItemsView, ValuesView, KeysView
-from typing import Dict, Union
+from collections.abc import MutableMapping
+from typing import Dict
+from typing import Union
 
 LOG = logging.getLogger()
 
@@ -75,24 +76,3 @@ class HashMapping(MutableMapping):
 
     def clear(self) -> None:
         self.data.clear()
-
-    def keys(self):
-        return KeysView(self)
-
-    def values(self):
-        return HashMappingValuesView(self)
-
-    def items(self):
-        return HashMappingItemsView(self)
-
-
-class HashMappingItemsView(ItemsView):
-    def __iter__(self):
-        for key, value in self._mapping.data.values():
-            yield (key, value)
-
-
-class HashMappingValuesView(ValuesView):
-    def __iter__(self):
-        for _, value in self._mapping.data.values():
-            yield value

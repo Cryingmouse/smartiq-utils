@@ -28,7 +28,8 @@ classifiers = [
 ]
 dynamic = ["version"]
 dependencies = [
-    "tenacity (>=9.0.0,<10.0.0)"
+    "tenacity (>=9.0.0,<10.0.0)",
+    "cryptography (>=44.0.2,<45.0.0)"
 ]
 
 [tool.poetry]
