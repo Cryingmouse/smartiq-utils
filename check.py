@@ -1,3 +1,4 @@
+import re
 import subprocess
 import sys
 from pathlib import Path
@@ -89,7 +90,12 @@ def execute_command(cmd: List[str], report_file: Path) -> int:
         # 输出简要结果
         with report_file.open() as f:
             lines = f.readlines()
-            error_count = sum(1 for line in lines if "error" in line.lower())
+
+            # This is for pylint
+            pattern = r"^[^:]+:\d+:\d+:\s[A-Z]\d+:\s.*"
+            error_count = sum(1 for line in lines if re.match(pattern, line.lower()))
+            # This is for mypy
+            error_count += sum(1 for line in lines if "error" in line.lower())
             warning_count = sum(1 for line in lines if "warning" in line.lower())
 
         console.print(
